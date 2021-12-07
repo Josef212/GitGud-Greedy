@@ -40,10 +40,8 @@ impl Cli {
     
     pub fn match_subcommand(&self) {
         match &self.opts.subcmd {
-            Some(SubCommand::Test(t)) => {
-                t.execute();
-            }
-            _ => {}
+            Some(SubCommand::Test(t)) => t.execute(),
+            _ => println!("No matching subcommand found. Use -h or --help to see the list.")
         }
     }
 }

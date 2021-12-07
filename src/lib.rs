@@ -39,8 +39,7 @@ impl Cli {
     }
     
     pub fn match_subcommand(&self) {
-        let opts = &self.opts;
-        match &opts.subcmd {
+        match &self.opts.subcmd {
             Some(SubCommand::Test(t)) => {
                 t.execute();
             }

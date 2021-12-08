@@ -58,5 +58,7 @@ pub fn init() -> Cli {
         .filter_level(LevelFilter::from_str(opts.log.as_str()).unwrap_or(LevelFilter::Error))
         .init();
 
-    Cli { opts }
+    Cli { 
+        opts 
+    }
 }

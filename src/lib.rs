@@ -3,20 +3,24 @@
 // https://rust-lang-nursery.github.io/rust-cookbook/database/sqlite.html
 
 mod commands;
+mod models;
 
+use std::error::Error;
 use std::io::Write;
 use std::str::FromStr;
 use clap::Parser;
 use chrono::Local;
+use env_logger::fmt::Color;
 use log::LevelFilter;
 
 use crate::commands::{SubCommand, SubCmd};
+use crate::models::Db;
 
 pub struct Cli {
     pub opts: Opts,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[clap(version="1.0", author="Josef212")]
 pub struct Opts {
     #[clap(short, long, default_value="default.conf")]
@@ -45,20 +49,41 @@ impl Cli {
 
 pub fn init() -> Cli {
     let opts: Opts = Opts::parse();
+    init_logger(&opts.log);
     
-    env_logger::Builder::new()
-        .format(|buf, record| {
-            writeln!(buf,
-                     "{} [{}] - {}",
-                     Local::now().format("%Y-%m-%dT%H:%M:%S"),
-                     record.level(),
-                     record.args()
-            )
-        })
-        .filter_level(LevelFilter::from_str(opts.log.as_str()).unwrap_or(LevelFilter::Error))
-        .init();
-
     Cli { 
         opts 
     }
+}
+
+fn init_logger(log_level: &String) {
+    env_logger::Builder::new()
+        .format(|buf, record| {
+            let level = record.level();
+            let mut style = buf.style();
+            style
+                .set_bold(true)
+                .set_color(match level {
+                    log::Level::Error => Color::Red,
+                    log::Level::Warn => Color::Yellow,
+                    log::Level::Trace => Color::Cyan,
+                    _ => Color::White
+                });
+
+            writeln!(buf,
+                     "({}) [{}]: {}",
+                     Local::now().format("%Y-%m-%d %H:%M:%S"),
+                     style.value(level),
+                     record.args()
+            )
+        })
+        .filter_level(LevelFilter::from_str(log_level.as_str()).unwrap_or(LevelFilter::Error))
+        .init();
+
+    std::panic::set_hook(Box::new(|err| {log::error!("{}", err)}));
+}
+
+pub fn test() -> Result<(), Box<dyn Error>> {
+    let _db = Db::load()?;
+    Ok(())
 }

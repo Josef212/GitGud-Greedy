@@ -1,4 +1,5 @@
 use clap::Parser;
+use log;
 use crate::commands::sub_cmd::SubCmd;
 
 #[derive(Parser)]
@@ -9,6 +10,6 @@ pub struct Test {
 
 impl SubCmd for Test {
     fn execute(&self) {
-        println!("Test debug info: {}", self.debug);
+        log::debug!("Test debug info: {}", self.debug);
     }
 }

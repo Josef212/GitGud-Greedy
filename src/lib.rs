@@ -4,7 +4,12 @@
 
 mod commands;
 
+use std::io::Write;
+use std::str::FromStr;
 use clap::Parser;
+use chrono::Local;
+use log::LevelFilter;
+
 use crate::commands::{SubCommand, SubCmd};
 
 pub struct Cli {
@@ -16,32 +21,42 @@ pub struct Cli {
 pub struct Opts {
     #[clap(short, long, default_value="default.conf")]
     config: String,
-    #[clap(default_value="input.txt")]
-    input: String,
-    #[clap(short, long)]
-    verbose: bool,
+    #[clap(short, long, default_value="Debug")]
+    log: String,
     #[clap(subcommand)]
-    subcmd: Option<SubCommand>,
+    sub_cmd: Option<SubCommand>,
 }
 
 impl Cli {
-    pub fn new() -> Cli {
-        Cli { opts: Opts::parse() }
-    }
-    
-    pub fn print(&self) {
+    pub fn print_info(&self) {
         let opts = &self.opts;
-        if opts.verbose {
-            println!("Value for config: {}", opts.config);
-            println!("Using input file: {}", opts.input);
-            println!("Verbose: {}", opts.verbose);
-        }
+        
+        log::info!("Value for config: {}", opts.config);
+        log::info!("LogLevel: {}", log::max_level());
     }
-    
+
     pub fn match_subcommand(&self) {
-        match &self.opts.subcmd {
+        match &self.opts.sub_cmd {
             Some(SubCommand::Test(t)) => t.execute(),
-            _ => println!("No matching subcommand found. Use -h or --help to see the list.")
+            _ => log::error!("No matching subcommand found. Use -h or --help to see the list.")
         }
     }
+}
+
+pub fn init() -> Cli {
+    let opts: Opts = Opts::parse();
+    
+    env_logger::Builder::new()
+        .format(|buf, record| {
+            writeln!(buf,
+                     "{} [{}] - {}",
+                     Local::now().format("%Y-%m-%dT%H:%M:%S"),
+                     record.level(),
+                     record.args()
+            )
+        })
+        .filter_level(LevelFilter::from_str(opts.log.as_str()).unwrap_or(LevelFilter::Error))
+        .init();
+
+    Cli { opts }
 }

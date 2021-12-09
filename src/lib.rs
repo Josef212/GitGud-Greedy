@@ -2,17 +2,18 @@
 // https://docs.rs/clap/latest/clap/
 // https://rust-lang-nursery.github.io/rust-cookbook/database/sqlite.html
 
+mod commons;
 mod commands;
 mod models;
 
 use std::error::Error;
 use std::io::Write;
 use std::str::FromStr;
-use clap::Parser;
 use chrono::Local;
 use env_logger::fmt::Color;
 use log::LevelFilter;
 
+use crate::commons::Opts;
 use crate::commands::{SubCommand, SubCmd};
 use crate::models::Db;
 
@@ -21,29 +22,16 @@ pub struct Cli {
     pub db: Db,
 }
 
-#[derive(Parser, Debug)]
-#[clap(version="1.0", author="Josef212")]
-pub struct Opts {
-    #[clap(short, long, default_value="default.conf")]
-    config: String,
-    #[clap(short, long, default_value="gg_financials.db")]
-    db_name: String,
-    #[clap(short, long, default_value="Debug")]
-    log: String,
-    #[clap(subcommand)]
-    sub_cmd: Option<SubCommand>,
-}
-
 impl Cli {
     pub fn print_info(&self) {
         let opts = &self.opts;
         
-        log::info!("Database name: {}", opts.db_name);
+        log::info!("Database name: {}", opts.get_db_name());
         log::info!("LogLevel: {}", log::max_level());
     }
 
     pub fn match_subcommand(&self) {
-        match &self.opts.sub_cmd {
+        match &self.opts.get_sub_cmd() {
             Some(sub_cmd) => self.execute_subcommand(sub_cmd),
             None => log::error!("No matching subcommand found. Use -h or --help to see the list."),
         }
@@ -64,9 +52,9 @@ impl Cli {
 }
 
 pub fn init() -> Cli {
-    let opts: Opts = Opts::parse();
-    init_logger(&opts.log);
-    let db = load_db(&opts.db_name);
+    let opts: Opts = Opts::new();
+    init_logger(&opts.get_log());
+    let db = load_db(&opts.get_db_name());
     
     Cli { 
         opts,

@@ -47,7 +47,7 @@ impl Cli {
     }
     
     fn execute_sub_cmd(&self, sub_cmd: &dyn SubCmd) {
-        sub_cmd.execute(&self.db);
+        sub_cmd.execute(&self.db, &self.opts);
     }
 }
 

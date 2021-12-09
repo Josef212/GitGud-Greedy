@@ -1,11 +1,10 @@
-
 #[derive(Debug)]
 pub struct Transaction {
     id: i32,
-    name: String,
-    date: String,
-    amount: f32,
-    tag: String,
+    pub name: String,
+    pub date: String,
+    pub amount: f32,
+    pub tag_id: i32,
 }
 
 impl Transaction {

@@ -4,8 +4,6 @@ use log;
 pub mod transaction;
 pub mod payroll;
 
-const DB_NAME: &str = "gg_financials.db";
-
 const TAGS_KEY: &str = "tags";
 const TAGS_TABLE: &str = "
 id INTEGER PRIMARY KEY, 
@@ -38,12 +36,12 @@ pub struct Db {
 }
 
 impl Db {
-    pub fn load() -> Result<Db, Error> {
-        log::trace!("Loading db from {}", DB_NAME);
+    pub fn load(db_name: &str) -> Result<Db, Error> {
+        log::trace!("Loading db from {}", db_name);
         
-        let conn = rusqlite::Connection::open(DB_NAME)?;
+        let conn = rusqlite::Connection::open(db_name)?;
         let db = Db {
-            name: String::from(DB_NAME),
+            name: String::from(db_name),
             connection: conn,
         };
         

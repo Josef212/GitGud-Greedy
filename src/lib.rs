@@ -18,6 +18,7 @@ use crate::models::Db;
 
 pub struct Cli {
     pub opts: Opts,
+    pub db: Db,
 }
 
 #[derive(Parser, Debug)]
@@ -25,6 +26,8 @@ pub struct Cli {
 pub struct Opts {
     #[clap(short, long, default_value="default.conf")]
     config: String,
+    #[clap(short, long, default_value="gg_financials.db")]
+    db_name: String,
     #[clap(short, long, default_value="Debug")]
     log: String,
     #[clap(subcommand)]
@@ -35,24 +38,39 @@ impl Cli {
     pub fn print_info(&self) {
         let opts = &self.opts;
         
-        log::info!("Value for config: {}", opts.config);
+        log::info!("Database name: {}", opts.db_name);
         log::info!("LogLevel: {}", log::max_level());
     }
 
     pub fn match_subcommand(&self) {
         match &self.opts.sub_cmd {
-            Some(SubCommand::Test(t)) => t.execute(),
-            _ => log::error!("No matching subcommand found. Use -h or --help to see the list.")
+            Some(sub_cmd) => self.execute_subcommand(sub_cmd),
+            None => log::error!("No matching subcommand found. Use -h or --help to see the list."),
         }
+    }
+    
+    fn execute_subcommand(&self, cmd: &SubCommand) {
+        match cmd {
+            // TODO: Can this be done generic???
+            SubCommand::Test(t) => self.execute_sub_cmd(t),
+            
+            _ => log::error!("SubCommand {} not implemented.", cmd),
+        }
+    }
+    
+    fn execute_sub_cmd(&self, sub_cmd: &dyn SubCmd) {
+        sub_cmd.execute(&self.db);
     }
 }
 
 pub fn init() -> Cli {
     let opts: Opts = Opts::parse();
     init_logger(&opts.log);
+    let db = load_db(&opts.db_name);
     
     Cli { 
-        opts 
+        opts,
+        db,
     }
 }
 
@@ -83,7 +101,16 @@ fn init_logger(log_level: &String) {
     std::panic::set_hook(Box::new(|err| {log::error!("{}", err)}));
 }
 
+fn load_db(db_name: &str) -> Db {
+    match Db::load(db_name) {
+        Err(e) => {
+            log::error!("Error loading db [{}]: {}", db_name, e);
+            std::process::exit(1);
+        },
+        Ok(db) => return db
+    }
+}
+
 pub fn test() -> Result<(), Box<dyn Error>> {
-    let _db = Db::load()?;
     Ok(())
 }

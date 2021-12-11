@@ -32,22 +32,9 @@ impl Cli {
 
     pub fn match_subcommand(&self) {
         match &self.opts.get_sub_cmd() {
-            Some(sub_cmd) => self.execute_subcommand(sub_cmd),
+            Some(sub_cmd) => sub_cmd.execute(&self.db, &self.opts),
             None => log::error!("No matching subcommand found. Use -h or --help to see the list."),
         }
-    }
-    
-    fn execute_subcommand(&self, cmd: &SubCommand) {
-        match cmd {
-            // TODO: Can this be done generic???
-            SubCommand::Test(t) => self.execute_sub_cmd(t),
-            
-            _ => log::error!("SubCommand {} not implemented.", cmd),
-        }
-    }
-    
-    fn execute_sub_cmd(&self, sub_cmd: &dyn SubCmd) {
-        sub_cmd.execute(&self.db, &self.opts);
     }
 }
 

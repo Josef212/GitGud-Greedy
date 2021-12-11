@@ -6,6 +6,6 @@ pub struct Payroll {
     pub net: f32,
     pub ss: f32,
     pub irpf: f32,
-    pub company: i32,
-    pub category: String,
+    pub company_id: i32,
+    pub category_id: i32,
 }

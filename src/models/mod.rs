@@ -86,26 +86,107 @@ impl Db {
     }
     
     fn create_table_if_not_exists(&self, table_name: &str, table_format: &str) -> Result<usize, Error> {
-        log::trace!("Creating {} table if not exists.", table_name.to_uppercase());
+        log::trace!("Creating {} table if not exists on {}", table_name.to_uppercase(), self.name);
         let sql = format!("CREATE TABLE IF NOT EXISTS {} ({})", table_name, table_format);
         self.connection.execute(&sql, [])
     }
     
     pub fn insert_transaction(&self, transaction: &Transaction) -> Result<usize, Error> {
-        log::trace!("Inserting new transaction: {:?}", transaction);
+        log::trace!("Inserting new transaction: {:?} to {}", transaction, self.name);
         
-        let sql = format!("INSERT INTO {} (name) values (?1, ?2, ?3, ?4)", TRANSACTIONS_KEY);
+        let sql = format!("INSERT INTO {} (name, date, amount, tag_id) VALUES (?1, ?2, ?3, ?4)", TRANSACTIONS_KEY);
         let params = params![&transaction.name, &transaction.date, &transaction.amount, &transaction.tag_id];
         
         self.connection.execute(&sql, params)
     }
     
     pub fn insert_payroll(&self, payroll: &Payroll) -> Result<usize, Error> {
-        log::trace!("Inserting new payroll: {:?}", payroll);
+        log::trace!("Inserting new payroll: {:?} to {}", payroll, self.name);
 
-        let sql = format!("INSERT INTO {} (name) values (?1, ?2, ?3, ?4, ?5, ?6, ?7)", PAYROLLS_KEY);
-        let params = params![&payroll.date, &payroll.gross, &payroll.net, &payroll.ss, &payroll.irpf, &payroll.company, &payroll.category];
+        let sql = format!("INSERT INTO {} (date, gross, net, ss, irpf, company_id, category_id) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)", PAYROLLS_KEY);
+        let params = params![&payroll.date, &payroll.gross, &payroll.net, &payroll.ss, &payroll.irpf, &payroll.company_id, &payroll.category_id];
         
         self.connection.execute(&sql, params)
+    }
+    
+    pub fn insert_tag(&self, tag: &str, description: &str) -> Result<usize, Error> {
+        self.insert_name(TAGS_KEY, tag, description)
+    }
+    
+    pub fn insert_company(&self, company: &str, description: &str) -> Result<usize, Error> {
+        log::trace!("Inserting company. C: {} - D: {}", company, description);
+        self.insert_name(COMPANIES_KEY, company, description)
+    }
+
+    pub fn insert_category(&self, category: &str, description: &str) -> Result<usize, Error> {
+        self.insert_name(CATEGORIES_KEY, category, description)
+    }
+
+    // Using 'name' to describe tag, company, category generically. (something with only [id, name, description])
+    fn insert_name(&self, table: &str, value: &str, description: &str) -> Result<usize, Error> {
+        log::trace!("Inserting 'name' into {}::{}. Value: {} - Description: {}", self.name, table, value, description);
+        
+        let sql = format!("INSERT INTO {} (name, description) VALUES (?1, ?2)", table);
+        let params = params![&value, &description];
+        
+        self.connection.execute(&sql, params)
+    }
+    
+    pub fn get_tag_str(&self, transaction: &Transaction) -> Result<String, Error> {
+        self.get_name_str(TAGS_KEY, transaction.tag_id)
+    }
+    
+    pub fn get_tag_id(&self, name: &str) -> Result<i32, Error> {
+        self.get_name_id(TAGS_KEY, name)
+    }
+    
+    pub fn get_company_str(&self, payroll: &Payroll) -> Result<String, Error> {
+        self.get_name_str(COMPANIES_KEY, payroll.company_id)
+    }
+    
+    pub fn get_company_id(&self, name: &str) -> Result<i32, Error> {
+        self.get_name_id(COMPANIES_KEY, name)
+    }
+
+    pub fn get_category_str(&self, payroll: &Payroll) -> Result<String, Error> {
+        self.get_name_str(CATEGORIES_KEY, payroll.category_id)
+    }
+
+    pub fn get_category_id(&self, name: &str) -> Result<i32, Error> {
+        self.get_name_id(CATEGORIES_KEY, name)
+    }
+
+    fn get_name_str(&self, table: &str, id: i32) -> Result<String, Error> {
+        log::trace!("Get name for id: {}", id);
+        
+        let sql = format!("SELECT * FROM {} WHERE id = {}", table, id);
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut names = stmt.query_map([], |row| {
+            let value: String = row.get(1).unwrap();
+            Ok(value)
+        })?;
+        
+        // if names.count() == 0 {
+        //     return Err("Could not found matching name to id");
+        // }
+        // 
+        // if names.count() > 1 {
+        //     log::warn!("Found multiple names for id {} in table {}", id, table);
+        // }
+        
+        Ok(names.nth(0).unwrap().unwrap())
+    }
+    
+    fn get_name_id(&self, table: &str, name: &str) -> Result<i32, Error> {
+        log::trace!("Get id for name: {}", name);
+        
+        let sql = format!("SELECT * FROM {} WHERE name = {}", table, name);
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut ids = stmt.query_map([], |row| {
+            let value: i32 = row.get(0).unwrap();
+            Ok(value)
+        })?;
+        
+        Ok(ids.nth(0).unwrap().unwrap())
     }
 }

@@ -12,7 +12,7 @@ pub struct Test {
 }
 
 impl SubCmd for Test {
-    fn execute(&self, db: &Db, opts: &Opts) {
+    fn execute(&self, _db: &Db, _opts: &Opts) {
         log::debug!("Test debug info: {}", self.debug);
     }
 }

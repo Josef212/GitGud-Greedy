@@ -4,7 +4,6 @@ use log;
 use crate::commands::sub_cmd::SubCmd;
 use crate::models::Db;
 use crate::commons::Opts;
-use crate::models::transaction::Transaction;
 
 #[derive(Parser, Debug)]
 pub struct AddTag {

@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub struct Payroll {
-    id: i32,
+    _id: i32,
     pub date: String,
     pub gross: f32,
     pub net: f32,

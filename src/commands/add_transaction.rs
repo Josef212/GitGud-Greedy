@@ -15,7 +15,7 @@ pub struct AddTransaction {
 }
 
 impl SubCmd for AddTransaction {
-    fn execute(&self, db: &Db, opts: &Opts) {
+    fn execute(&self, db: &Db, _opts: &Opts) {
         let date_int = 0; // TODO: Format date from str to int
         //let tag_id = db.get_tag_id(&self.tag).unwrap_or(-1);
         let tag_id = 0;

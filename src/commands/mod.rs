@@ -37,6 +37,7 @@ impl std::fmt::Display for SubCommand {
             SubCommand::AddCategory(_) => write!(f, "{}", "AddCategory"),
             SubCommand::AddTransaction(_) => write!(f, "{}", "AddTransaction"),
             
+            #[allow(unreachable_patterns)]
             _ => write!(f, "Not implemented enumerator display")
         }
     }
@@ -53,6 +54,7 @@ impl SubCommand {
             SubCommand::AddCategory(cmd) => cmd.execute(db, opts),
             SubCommand::AddTransaction(cmd) => cmd.execute(db, opts),
 
+            #[allow(unreachable_patterns)]
             _ => log::error!("SubCommand {} not implemented.", self),
         }
     }

@@ -14,7 +14,6 @@ use env_logger::fmt::Color;
 use log::LevelFilter;
 
 use crate::commons::Opts;
-use crate::commands::{SubCommand, SubCmd};
 use crate::models::Db;
 
 pub struct Cli {

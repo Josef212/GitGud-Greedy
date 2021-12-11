@@ -132,24 +132,24 @@ impl Db {
         self.connection.execute(&sql, params)
     }
     
-    pub fn get_tag_str(&self, transaction: &Transaction) -> Result<String, Error> {
-        self.get_name_str(TAGS_KEY, transaction.tag_id)
+    pub fn get_tag_str(&self, tag_id: i32) -> Result<String, Error> {
+        self.get_name_str(TAGS_KEY, tag_id)
     }
     
     pub fn get_tag_id(&self, name: &str) -> Result<i32, Error> {
         self.get_name_id(TAGS_KEY, name)
     }
     
-    pub fn get_company_str(&self, payroll: &Payroll) -> Result<String, Error> {
-        self.get_name_str(COMPANIES_KEY, payroll.company_id)
+    pub fn get_company_str(&self, company_id: i32) -> Result<String, Error> {
+        self.get_name_str(COMPANIES_KEY, company_id)
     }
     
     pub fn get_company_id(&self, name: &str) -> Result<i32, Error> {
         self.get_name_id(COMPANIES_KEY, name)
     }
 
-    pub fn get_category_str(&self, payroll: &Payroll) -> Result<String, Error> {
-        self.get_name_str(CATEGORIES_KEY, payroll.category_id)
+    pub fn get_category_str(&self, category_id: i32) -> Result<String, Error> {
+        self.get_name_str(CATEGORIES_KEY, category_id)
     }
 
     pub fn get_category_id(&self, name: &str) -> Result<i32, Error> {
@@ -159,6 +159,8 @@ impl Db {
     fn get_name_str(&self, table: &str, id: i32) -> Result<String, Error> {
         log::trace!("Get name for id: {}", id);
         
+        // TODO: Add better and more friendly error handling
+        
         let sql = format!("SELECT * FROM {} WHERE id = {}", table, id);
         let mut stmt = self.connection.prepare(&sql)?;
         let mut names = stmt.query_map([], |row| {
@@ -166,21 +168,16 @@ impl Db {
             Ok(value)
         })?;
         
-        // if names.count() == 0 {
-        //     return Err("Could not found matching name to id");
-        // }
-        // 
-        // if names.count() > 1 {
-        //     log::warn!("Found multiple names for id {} in table {}", id, table);
-        // }
-        
         Ok(names.nth(0).unwrap().unwrap())
     }
     
     fn get_name_id(&self, table: &str, name: &str) -> Result<i32, Error> {
         log::trace!("Get id for name: {}", name);
+
+        // TODO: Add better and more friendly error handling
         
-        let sql = format!("SELECT * FROM {} WHERE name = {}", table, name);
+        let sql = format!("SELECT * FROM {} WHERE name = '{}'", table, name);
+        log::trace!("Executing sql: {}", sql);
         let mut stmt = self.connection.prepare(&sql)?;
         let mut ids = stmt.query_map([], |row| {
             let value: i32 = row.get(0).unwrap();
@@ -188,5 +185,38 @@ impl Db {
         })?;
         
         Ok(ids.nth(0).unwrap().unwrap())
+    }
+    
+    pub fn get_all_tags(&self) -> Result<Vec<(i32, String, String)>, Error> {
+        self.get_all_names(TAGS_KEY)
+    }
+    
+    pub fn get_all_companies(&self) -> Result<Vec<(i32, String, String)>, Error> {
+        self.get_all_names(COMPANIES_KEY)
+    }
+    
+    pub fn get_all_categories(&self) -> Result<Vec<(i32, String, String)>, Error> {
+        self.get_all_names(CATEGORIES_KEY)
+    }
+    
+    fn get_all_names(&self, table: &str) -> Result<Vec<(i32, String, String)>, Error> {
+        log::trace!("Getting all tags");
+        
+        let mut ret = Vec::new();
+        
+        let sql = format!("SELECT * FROM {}", table);
+        log::trace!("Executing sql: {}", sql);
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut rows = stmt.query([])?;
+        
+        while let Some(r) = rows.next()? {
+            let id: i32 = r.get_unwrap(0);
+            let name: String = r.get_unwrap(1);
+            let desc: String = r.get_unwrap(2);
+
+            ret.push((id, name, desc));
+        }
+        
+        Ok(ret)
     }
 }

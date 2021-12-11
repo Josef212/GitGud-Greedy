@@ -9,10 +9,12 @@ mod sub_cmd;
 mod test;
 mod add_transaction;
 mod add_names;
+mod get_names;
 
 use test::Test;
-use add_transaction::AddTransaction;
+use add_transaction::*;
 use add_names::*;
+use get_names::*;
 
 #[derive(Parser, Debug)]
 pub enum SubCommand {
@@ -26,6 +28,16 @@ pub enum SubCommand {
     AddCompany(AddCompany),
     #[clap(version="1.0", author="Josef212")]
     AddCategory(AddCategory),
+    #[clap(version="1.0", author="Josef212")]
+    GetName(GetName),
+    #[clap(version="1.0", author="Josef212")]
+    GetId(GetId),
+    #[clap(version="1.0", author="Josef212")]
+    GetTags(GetTags),
+    #[clap(version="1.0", author="Josef212")]
+    GetCompanies(GetCompanies),
+    #[clap(version="1.0", author="Josef212")]
+    GetCategories(GetCategories),
 }
 
 impl std::fmt::Display for SubCommand {
@@ -36,6 +48,11 @@ impl std::fmt::Display for SubCommand {
             SubCommand::AddCompany(_) => write!(f, "{}", "AddCompany"),
             SubCommand::AddCategory(_) => write!(f, "{}", "AddCategory"),
             SubCommand::AddTransaction(_) => write!(f, "{}", "AddTransaction"),
+            SubCommand::GetName(_) => write!(f, "{}", "Debug-GetName"),
+            SubCommand::GetId(_) => write!(f, "{}", "Debug-GetId"),
+            SubCommand::GetTags(_) => write!(f, "{}", "GetTags"),
+            SubCommand::GetCompanies(_) => write!(f, "{}", "GetCompanies"),
+            SubCommand::GetCategories(_) => write!(f, "{}", "GetCategories"),
             
             #[allow(unreachable_patterns)]
             _ => write!(f, "Not implemented enumerator display")
@@ -53,6 +70,11 @@ impl SubCommand {
             SubCommand::AddCompany(cmd) => cmd.execute(db, opts),
             SubCommand::AddCategory(cmd) => cmd.execute(db, opts),
             SubCommand::AddTransaction(cmd) => cmd.execute(db, opts),
+            SubCommand::GetName(cmd) => cmd.execute(db, opts),
+            SubCommand::GetId(cmd) => cmd.execute(db, opts),
+            SubCommand::GetTags(cmd) => cmd.execute(db, opts),
+            SubCommand::GetCompanies(cmd) => cmd.execute(db, opts),
+            SubCommand::GetCategories(cmd) => cmd.execute(db, opts),
 
             #[allow(unreachable_patterns)]
             _ => log::error!("SubCommand {} not implemented.", self),

@@ -14,18 +14,20 @@ pub struct AddPayroll {
     ss: f32,
     irpf: f32,
     company: String,
-    category: String,
+    category_id: i32,
 }
 
 impl SubCmd for AddPayroll {
     fn execute(&self, db: &Db, _opts: &Opts) {
         let date_int = 0; // TODO: Format date from str to int
-        let company_id = 0;
-        let category_id = 0;
+        let company_id = db.get_company_id(&self.company).unwrap_or_else(|e| {
+            log::error!("Could not find id for company {}. Error: {}", self.company, e);
+            std::process::exit(0);
+        });
         
         // TODO: Validate all arguments. Maybe things like values are positive and higher than 0
         
-        let model = Payroll::new(date_int, self.gross, self.net, self.ss, self.irpf, company_id, category_id);
+        let model = Payroll::new(date_int, self.gross, self.net, self.ss, self.irpf, company_id, self.category_id);
         db.insert_payroll(&model).unwrap_or_else(|e| {
             log::error!("Error inserting payroll: {}", e);
             std::process::exit(0);

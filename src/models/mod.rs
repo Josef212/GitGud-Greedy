@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Error, params};
+use rusqlite::{Connection, Error, params, Row, Rows};
 use log;
 
 pub mod transaction;
@@ -167,32 +167,64 @@ impl Db {
     fn get_name_str(&self, table: &str, id: i32) -> Result<String, Error> {
         log::trace!("Get name for id: {}", id);
         
-        // TODO: Add better and more friendly error handling
-        
         let sql = format!("SELECT * FROM {} WHERE id = {}", table, id);
+        log::trace!("Executing sql: {}", sql);
+
         let mut stmt = self.connection.prepare(&sql)?;
-        let mut names = stmt.query_map([], |row| {
-            let value: String = row.get(1).unwrap();
-            Ok(value)
+        let mut rows = stmt.query([])?;
+        let names: Vec<String> = self.query_statement(&mut rows, |r| {
+            if let Ok(v) = r.get(1) {
+                return Some(v);
+            }
+            
+            None
         })?;
         
-        Ok(names.nth(0).unwrap().unwrap())
+        if names.len() == 0 {
+            return Err(Error::QueryReturnedNoRows);
+        }
+        
+        Ok(names[0].clone())
     }
     
     fn get_name_id(&self, table: &str, name: &str) -> Result<i32, Error> {
         log::trace!("Get id for name: {}", name);
 
-        // TODO: Add better and more friendly error handling
-        
         let sql = format!("SELECT * FROM {} WHERE name = '{}'", table, name);
         log::trace!("Executing sql: {}", sql);
+
         let mut stmt = self.connection.prepare(&sql)?;
-        let mut ids = stmt.query_map([], |row| {
-            let value: i32 = row.get(0).unwrap();
-            Ok(value)
+        let mut rows = stmt.query([])?;
+        let ids: Vec<i32> = self.query_statement(&mut rows, |r| {
+            if let Ok(v) = r.get(0) {
+                return Some(v);
+            }
+            
+            None
         })?;
         
-        Ok(ids.nth(0).unwrap().unwrap())
+        if ids.len() == 0 {
+            return Err(Error::QueryReturnedNoRows);
+        }
+        
+        if ids.len() > 1 {
+            log::warn!("Found several ids with same name value [{}]", name);
+        }
+        
+        Ok(ids[0])
+    }
+    
+    fn query_statement<T, TFn>(&self, rows: &mut Rows, mut convertor: TFn) -> Result<Vec<T>, Error>
+        where TFn: FnMut(&Row) -> Option<T>  {
+        let mut ret: Vec<T> = Vec::new();
+        
+        while let Some(r) = rows.next()? {
+            if let Some(value) = convertor(r) {
+                ret.push(value);
+            }
+        }
+        
+        Ok(ret)
     }
     
     pub fn get_all_tags(&self) -> Result<Vec<Name>, Error> {
@@ -210,20 +242,18 @@ impl Db {
     fn get_all_names(&self, table: &str) -> Result<Vec<Name>, Error> {
         log::trace!("Getting all tags");
         
-        let mut ret = Vec::new();
-        
         let sql = format!("SELECT * FROM {}", table);
         log::trace!("Executing sql: {}", sql);
+
         let mut stmt = self.connection.prepare(&sql)?;
         let mut rows = stmt.query([])?;
-        
-        while let Some(r) = rows.next()? {
+        let ret = self.query_statement(&mut rows, |r| {
             let id: i32 = r.get_unwrap(0);
             let name: String = r.get_unwrap(1);
             let desc: String = r.get_unwrap(2);
 
-            ret.push(Name::new(id, name, desc));
-        }
+            Some(Name::new(id, name, desc))
+        })?;
         
         Ok(ret)
     }

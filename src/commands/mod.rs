@@ -73,7 +73,7 @@ impl SubCommand {
             SubCommand::AddCategory(cmd) => cmd.execute(db, opts),
             SubCommand::AddTransaction(cmd) => cmd.execute(db, opts),
             SubCommand::AddPayroll(cmd) => cmd.execute(db, opts),
-            SubCommand::RepeatPayroll(cmd) => cmd.execute(db, opts),
+            // SubCommand::RepeatPayroll(cmd) => cmd.execute(db, opts),
             SubCommand::GetName(cmd) => cmd.execute(db, opts),
             SubCommand::GetId(cmd) => cmd.execute(db, opts),
             SubCommand::GetTags(cmd) => cmd.execute(db, opts),

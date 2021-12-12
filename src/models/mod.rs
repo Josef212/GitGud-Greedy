@@ -1,3 +1,4 @@
+use chrono::{NaiveDate, NaiveDateTime, ParseError, Utc};
 use rusqlite::{Connection, Error, params, Row, Rows};
 use log;
 
@@ -97,6 +98,19 @@ impl Db {
         log::trace!("Creating {} table if not exists on {}", table_name.to_uppercase(), self.name);
         let sql = format!("CREATE TABLE IF NOT EXISTS {} ({})", table_name, table_format);
         self.connection.execute(&sql, [])
+    }
+    
+    pub fn decode_date(date_int: i64) -> String {
+        NaiveDateTime::from_timestamp(date_int, 0)
+            .format("%d-%m-%Y")
+            .to_string()
+    }
+    
+    pub fn code_date(date: &String) -> Result<i64, ParseError> {
+        let date = NaiveDate::parse_from_str(&date, "%d-%m-%Y")?;
+        let time = Utc::now().time();
+        let date_time = NaiveDateTime::new(date, time);
+        Ok(date_time.timestamp())
     }
     
     pub fn insert_transaction(&self, transaction: &Transaction) -> Result<usize, Error> {

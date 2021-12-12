@@ -19,7 +19,11 @@ pub struct AddPayroll {
 
 impl SubCmd for AddPayroll {
     fn execute(&self, db: &Db, _opts: &Opts) {
-        let date_int = 0; // TODO: Format date from str to int
+        let date_int = Db::code_date(&self.date).unwrap_or_else(|e| {
+            log::error!("Could not parse date {}. Error: {}", self.date, e);
+            std::process::exit(0);
+        });
+        
         let company_id = db.get_company_id(&self.company).unwrap_or_else(|e| {
             log::error!("Could not find id for company {}. Error: {}", self.company, e);
             std::process::exit(0);

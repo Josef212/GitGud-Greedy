@@ -2,7 +2,7 @@ use clap::Parser;
 use log;
 
 use crate::commands::sub_cmd::SubCmd;
-use crate::models::Db;
+use crate::models::{Db, Name};
 use crate::commons::Opts;
 
 #[derive(Parser, Debug)]
@@ -101,12 +101,12 @@ impl SubCmd for GetCategories {
     }
 }
 
-fn list_all(table: &str, list: &Vec<(i32, String, String)>) {
+fn list_all(table: &str, list: &Vec<Name>) {
     print!("List of {}: \n", table);
     for value in list {
-        let id = value.0;
-        let name = &value.1;
-        let desc = &value.2;
+        let id = value.id;
+        let name = &value.name;
+        let desc = &value.description;
 
         print!("[{}]: {} - {}\n", id, name, desc);
     }

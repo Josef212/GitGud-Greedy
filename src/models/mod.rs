@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Error, params, ToSql};
+use rusqlite::{Connection, Error, params};
 use log;
 
 pub mod transaction;
@@ -49,8 +49,16 @@ company_id INTEGER REFERENCES companies(id),
 category_id INTEGER REFERENCES categories(id)
 ";
 
-pub trait ToParams {
-    fn to_params(&self) -> [&dyn ToSql];
+pub struct Name {
+    pub id: i32,
+    pub name: String,
+    pub description: String,
+}
+
+impl Name {
+    pub fn new(id: i32, name: String, description: String) -> Name {
+        Name { id, name, description }
+    }
 }
 
 pub struct Db {
@@ -187,19 +195,19 @@ impl Db {
         Ok(ids.nth(0).unwrap().unwrap())
     }
     
-    pub fn get_all_tags(&self) -> Result<Vec<(i32, String, String)>, Error> {
+    pub fn get_all_tags(&self) -> Result<Vec<Name>, Error> {
         self.get_all_names(TAGS_KEY)
     }
     
-    pub fn get_all_companies(&self) -> Result<Vec<(i32, String, String)>, Error> {
+    pub fn get_all_companies(&self) -> Result<Vec<Name>, Error> {
         self.get_all_names(COMPANIES_KEY)
     }
     
-    pub fn get_all_categories(&self) -> Result<Vec<(i32, String, String)>, Error> {
+    pub fn get_all_categories(&self) -> Result<Vec<Name>, Error> {
         self.get_all_names(CATEGORIES_KEY)
     }
     
-    fn get_all_names(&self, table: &str) -> Result<Vec<(i32, String, String)>, Error> {
+    fn get_all_names(&self, table: &str) -> Result<Vec<Name>, Error> {
         log::trace!("Getting all tags");
         
         let mut ret = Vec::new();
@@ -214,7 +222,7 @@ impl Db {
             let name: String = r.get_unwrap(1);
             let desc: String = r.get_unwrap(2);
 
-            ret.push((id, name, desc));
+            ret.push(Name::new(id, name, desc));
         }
         
         Ok(ret)

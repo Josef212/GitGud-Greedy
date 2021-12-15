@@ -21,7 +21,11 @@ pub enum SubCommand {
     #[clap(version="1.0", author="Josef212")]
     AddTransaction(AddTransaction),
     #[clap(version="1.0", author="Josef212")]
+    AddTransactionP(AddTransactionP),
+    #[clap(version="1.0", author="Josef212")]
     AddPayroll(AddPayroll),
+    #[clap(version="1.0", author="Josef212")]
+    AddPayrollP(AddPayrollP),
     #[clap(version="1.0", author="Josef212")]
     RepeatPayroll(RepeatPayroll),
     #[clap(version="1.0", author="Josef212")]
@@ -49,7 +53,9 @@ impl std::fmt::Display for SubCommand {
             SubCommand::AddCompany(_) => write!(f, "{}", "AddCompany"),
             SubCommand::AddCategory(_) => write!(f, "{}", "AddCategory"),
             SubCommand::AddTransaction(_) => write!(f, "{}", "AddTransaction"),
+            SubCommand::AddTransactionP(_) => write!(f, "{}", "AddTransactionP"),
             SubCommand::AddPayroll(_) => write!(f, "{}", "AddPayroll"),
+            SubCommand::AddPayrollP(_) => write!(f, "{}", "AddPayrollP"),
             SubCommand::RepeatPayroll(_) => write!(f, "{}", "RepeatPayroll"),
             SubCommand::GetName(_) => write!(f, "{}", "Debug-GetName"),
             SubCommand::GetId(_) => write!(f, "{}", "Debug-GetId"),
@@ -72,7 +78,9 @@ impl SubCommand {
             SubCommand::AddCompany(cmd) => cmd.execute(db, opts),
             SubCommand::AddCategory(cmd) => cmd.execute(db, opts),
             SubCommand::AddTransaction(cmd) => cmd.execute(db, opts),
+            SubCommand::AddTransactionP(cmd) => cmd.execute(db, opts),
             SubCommand::AddPayroll(cmd) => cmd.execute(db, opts),
+            SubCommand::AddPayrollP(cmd) => cmd.execute(db, opts),
             // SubCommand::RepeatPayroll(cmd) => cmd.execute(db, opts),
             SubCommand::GetName(cmd) => cmd.execute(db, opts),
             SubCommand::GetId(cmd) => cmd.execute(db, opts),

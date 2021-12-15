@@ -1,7 +1,7 @@
 use clap::Parser;
 use log;
 
-use crate::commands::sub_cmd::SubCmd;
+use crate::commands::sub_cmd::{SubCmd, ask_parameter};
 use crate::models::Db;
 use crate::commons::Opts;
 use crate::models::payroll::Payroll;
@@ -38,6 +38,41 @@ impl SubCmd for AddPayroll {
         });
         
         log::info!("Payroll [{:?}] inserted successfully", model);
+    }
+}
+
+#[derive(Parser, Debug)]
+pub struct AddPayrollP;
+
+impl SubCmd for AddPayrollP {
+    fn execute(&self, db: &Db, _opts: &Opts) {
+        let date = ask_parameter::<String>("date");
+        let date = Db::code_date(&date).unwrap_or_else(|e| {
+            log::error!("Could not parse date {}. Error: {}", date, e);
+            std::process::exit(0);
+        });
+        
+        let gross = ask_parameter::<f32>("gross");
+        let net = ask_parameter::<f32>("net");
+        let ss = ask_parameter::<f32>("ss");
+        let irpf = ask_parameter::<f32>("irpf");
+        let company = ask_parameter::<String>("company");
+        let company = db.get_company_id(&company).unwrap_or_else(|e| {
+            log::error!("Could not find company id for company {}. Error: {}", company, e);
+            std::process::exit(0);
+        });
+        
+        let category_id = ask_parameter::<i32>("category_id");
+        
+        // TODO: Validate parameters
+        
+        let payroll = Payroll::new(date, gross, net, ss, irpf, company, category_id);
+        db.insert_payroll(&payroll).unwrap_or_else(|e| {
+            log::error!("Error inserting payroll: {}", e);
+            std::process::exit(0);
+        });
+        
+        log::info!("Payroll [{:?}] inserted successfully", payroll);
     }
 }
 

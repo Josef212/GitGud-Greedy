@@ -271,4 +271,69 @@ impl Db {
         
         Ok(ret)
     }
+    
+    pub fn get_payroll_data(&self, year: Option<u32>, month: Option<u32>) -> Result<Vec<Payroll>, Error> {
+        log::trace!("Getting payrolls data");
+        
+        if year == None && month != None {
+            log::error!("Error getting payrolls data. Year is None but month is not. Available combinations are (all none), (year and none month) or (year and month)");
+            std::process::exit(0);
+        }
+
+        let mut sql = format!("SELECT * FROM {}", PAYROLLS_KEY);
+        match year {
+            Some(y) => sql += &format!(" WHERE strftime('%Y', date) = '{}'", y),
+            None => (),
+        }
+        
+        match month {
+            Some(m) => sql += &format!(" AND strftime('%m', date) = '{}'", m),
+            None => (),
+        }
+
+        sql += " ORDER BY date ASC";
+
+        log::trace!("Executing sql: {}", sql);
+        
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut rows = stmt.query([])?;
+        let ret = self.query_statement(&mut rows, |r| Some(Payroll::from_row(r)))?;
+        
+        Ok(ret)
+    }
+    
+    pub fn get_transaction_data(&self, year: Option<u32>, month: Option<u32>) -> Result<Vec<Transaction>, Error> {
+        log::trace!("Getting transactions data");
+
+        if year == None && month != None {
+            log::error!("Error getting transactions data. Year is None but month is not. Available combinations are (all none), (year and none month) or (year and month)");
+            std::process::exit(0);
+        }
+
+        let mut sql = format!("SELECT * FROM {}", TRANSACTIONS_KEY);
+        match year {
+            Some(y) => sql += &format!(" WHERE strftime('%Y', date) = '{}'", y),
+            None => (),
+        }
+
+        match month {
+            Some(m) => sql += &format!(" AND strftime('%m', date) = '{}'", m),
+            None => (),
+        }
+        
+        sql += " ORDER BY date ASC";
+
+        log::trace!("Executing sql: {}", sql);
+
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut rows = stmt.query([])?;
+        let ret = self.query_statement(&mut rows, |r| Some(Transaction::from_row(r)))?;
+
+        Ok(ret)
+    }
+
+    pub fn get_payroll_data_range(&self, start_year: u32, start_month: u32, end_year: u32, end_month: u32) -> Result<Vec<Payroll>, Error> {
+        // TODO: Maybe can use a struct to wrap date ranges. Will probably be handy for other fetch
+        todo!()
+    }
 }

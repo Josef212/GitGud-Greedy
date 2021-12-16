@@ -1,6 +1,8 @@
+use rusqlite::Row;
+
 #[derive(Debug)]
 pub struct Payroll {
-    _id: i32,
+    pub _id: i32,
     pub date: String,
     pub gross: f32,
     pub net: f32,
@@ -21,6 +23,19 @@ impl Payroll {
             irpf,
             company_id,
             category_id,
+        }
+    }
+    
+    pub fn from_row(r: &Row) -> Payroll {
+        Payroll {
+            _id: r.get_unwrap(0),
+            date: r.get_unwrap(1),
+            gross: r.get_unwrap(2),
+            net: r.get_unwrap(3),
+            ss: r.get_unwrap(4),
+            irpf: r.get_unwrap(5),
+            company_id: r.get_unwrap(6),
+            category_id: r.get_unwrap(7)
         }
     }
 }

@@ -12,6 +12,8 @@ mod add_names;
 mod get_names;
 mod payroll_data;
 mod transaction_data;
+mod parse_transaction;
+mod parse_payroll;
 
 use add_transaction::*;
 use add_payroll::*;
@@ -19,6 +21,8 @@ use add_names::*;
 use get_names::*;
 use payroll_data::*;
 use transaction_data::*;
+use parse_transaction::*;
+use parse_payroll::*;
 
 #[derive(Parser, Debug)]
 pub enum SubCommand {
@@ -52,6 +56,10 @@ pub enum SubCommand {
     PayrollData(PayrollData),
     #[clap(version="1.0", author="Josef212")]
     TransactionData(TransactionData),
+    #[clap(version="1.0", author="Josef212")]
+    ParseTransaction(ParseTransaction),
+    #[clap(version="1.0", author="Josef212")]
+    ParsePayroll(ParsePayroll),
 }
 
 impl std::fmt::Display for SubCommand {
@@ -72,6 +80,8 @@ impl std::fmt::Display for SubCommand {
             SubCommand::GetCategories(_) => write!(f, "{}", "GetCategories"),
             SubCommand::PayrollData(_) => write!(f, "{}", "PayrollData"),
             SubCommand::TransactionData(_) => write!(f, "{}", "TransactionData"),
+            SubCommand::ParseTransaction(_) => write!(f, "{}", "ParseTransaction"),
+            SubCommand::ParsePayroll(_) => write!(f, "{}", "ParsePayroll"),
             
             #[allow(unreachable_patterns)]
             _ => write!(f, "Not implemented enumerator display")
@@ -99,6 +109,8 @@ impl SubCommand {
             SubCommand::GetCategories(cmd) => cmd.execute(db, opts),
             SubCommand::PayrollData(cmd) => cmd.execute(db, opts),
             SubCommand::TransactionData(cmd) => cmd.execute(db, opts),
+            SubCommand::ParseTransaction(cmd) => cmd.execute(db, opts),
+            SubCommand::ParsePayroll(cmd) => cmd.execute(db, opts),
 
             #[allow(unreachable_patterns)]
             _ => log::error!("SubCommand {} not implemented.", self),

@@ -33,7 +33,7 @@ const TRANSACTIONS_KEY: &str = "transactions";
 const TRANSACTIONS_TABLE: &str = "
 id INTEGER PRIMARY KEY, 
 name TEXT NOT NULL, 
-date INTEGER NOT NULL, 
+date DATE NOT NULL, 
 amount REAL NOT NULL, 
 tag_id INTEGER REFERENCES tags(id)
 ";
@@ -41,7 +41,7 @@ tag_id INTEGER REFERENCES tags(id)
 const PAYROLLS_KEY: &str = "payrolls";
 const PAYROLLS_TABLE: &str = "
 id INTEGER PRIMARY KEY, 
-date INTEGER NOT NULL, 
+date DATE NOT NULL, 
 gross REAL NOT NULL, 
 net REAL NOT NULL, 
 ss REAL NOT NULL, 

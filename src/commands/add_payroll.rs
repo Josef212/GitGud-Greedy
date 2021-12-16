@@ -19,19 +19,15 @@ pub struct AddPayroll {
 
 impl SubCmd for AddPayroll {
     fn execute(&self, db: &Db, _opts: &Opts) {
-        let date_int = Db::code_date(&self.date).unwrap_or_else(|e| {
-            log::error!("Could not parse date {}. Error: {}", self.date, e);
-            std::process::exit(0);
-        });
-        
         let company_id = db.get_company_id(&self.company).unwrap_or_else(|e| {
             log::error!("Could not find id for company {}. Error: {}", self.company, e);
             std::process::exit(0);
         });
         
+        // TODO: Validate date is properly set. YYYY-MM-DD
         // TODO: Validate all arguments. Maybe things like values are positive and higher than 0
         
-        let model = Payroll::new(date_int, self.gross, self.net, self.ss, self.irpf, company_id, self.category_id);
+        let model = Payroll::new(&self.date, self.gross, self.net, self.ss, self.irpf, company_id, self.category_id);
         db.insert_payroll(&model).unwrap_or_else(|e| {
             log::error!("Error inserting payroll: {}", e);
             std::process::exit(0);
@@ -47,11 +43,6 @@ pub struct AddPayrollP;
 impl SubCmd for AddPayrollP {
     fn execute(&self, db: &Db, _opts: &Opts) {
         let date = ask_parameter::<String>("date");
-        let date = Db::code_date(&date).unwrap_or_else(|e| {
-            log::error!("Could not parse date {}. Error: {}", date, e);
-            std::process::exit(0);
-        });
-        
         let gross = ask_parameter::<f32>("gross");
         let net = ask_parameter::<f32>("net");
         let ss = ask_parameter::<f32>("ss");
@@ -63,10 +54,11 @@ impl SubCmd for AddPayrollP {
         });
         
         let category_id = ask_parameter::<i32>("category_id");
-        
+
+        // TODO: Validate date is properly set. YYYY-MM-DD
         // TODO: Validate parameters
         
-        let payroll = Payroll::new(date, gross, net, ss, irpf, company, category_id);
+        let payroll = Payroll::new(&date, gross, net, ss, irpf, company, category_id);
         db.insert_payroll(&payroll).unwrap_or_else(|e| {
             log::error!("Error inserting payroll: {}", e);
             std::process::exit(0);

@@ -69,7 +69,7 @@ impl SubCmd for PayrollData {
             let portion = total / net_total * 100.0;
             
             log::info!(
-                "  [{}] {} - {:.2} - {:.2}%",
+                "  [{:02}] {} - {:.2} - {:.2}%",
                 *c, name, total, portion
             )
         }
@@ -81,7 +81,7 @@ impl SubCmd for PayrollData {
             let portion = total / net_total * 100.0;
 
             log::info!(
-                "  [{}] {} - {:.2} - {:.2}%",
+                "  [{:02}] {} - {:.2} - {:.2}%",
                 *c, name, total, portion
             )
         }

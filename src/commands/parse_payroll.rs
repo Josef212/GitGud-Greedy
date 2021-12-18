@@ -12,6 +12,7 @@ pub struct ParsePayroll {
 
 impl SubCmd for ParsePayroll {
     fn execute(&self, _db: &Db, _opts: &Opts) {
+        log::trace!("");
         todo!()
     }
 }

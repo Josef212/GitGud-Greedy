@@ -5,6 +5,7 @@
 mod commons;
 mod commands;
 mod models;
+mod view_models;
 
 use std::error::Error;
 use std::io::Write;

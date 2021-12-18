@@ -1,7 +1,10 @@
 use std::collections::HashMap;
+
 use crate::Db;
 use crate::models::transaction::Transaction;
-use super::ViewModel;
+use comfy_table::{Table, Row, ContentArrangement, Cell, Attribute, Color};
+use comfy_table::presets::UTF8_FULL;
+use comfy_table::modifiers::UTF8_ROUND_CORNERS;
 
 struct TagInfo {
     id: i32,
@@ -49,29 +52,66 @@ impl<'a> TransactionDataVm<'a> {
     }
     
     pub fn render(&self, db: &Db) {
-        log::info!("Transactions =====================");
-        for t in self.transactions {
-            let tag = db.get_tag_str(t.tag_id).unwrap_or(String::from("Unknown"));
-
-            log::info!(
-                "  [{:04}] Name: {} - Date: {} - Amount: {:.2} - Tag: {}",
-                t._id, t.name, t.date, t.amount, tag
-            );
-        }
-
-        log::info!("======================================");
-        log::info!("Total spent: {:.2}", self.total_amount);
-        log::info!("Total tags: {}", self.tags_info.len());
-        log::info!("Avg per tag: {:.2}", self.amount_avg);
-
+        self.recap();
+        self.tags(db);
+        self.transactions(db);
+    }
+    
+    fn recap(&self) {
+        let mut table = TransactionDataVm::create_table(vec!["Total", "Tags count", "Avg. price"]);
+        table.add_row(vec![
+            Cell::new(format!("{:.2}", self.total_amount)),
+            Cell::new(format!("{}", self.tags_info.len())),
+            Cell::new(format!("{:.2}", self.amount_avg)),
+        ]);
+        
+        log::info!("Summary:\n{}", table);
+    }
+    
+    fn tags(&self, db: &Db) {
+        let mut table = TransactionDataVm::create_table(vec!["Id", "Tag", "Total", "Count", "Avg."]);
         for (_, info) in &self.tags_info {
             let tag = db.get_tag_str(info.id).unwrap_or(String::from("Unknown"));
-            log::info!(
-                "  [{:02}] {} - A: {:.2} - C: {} - Avg: {:.2}",
-                info.id, tag, info.amount, info.count, info.avg()
-            );
+
+            table.add_row(vec![
+                Cell::new(format!("{:02}", info.id)),
+                Cell::new(format!("{}", tag)),
+                Cell::new(format!("{:.2}", info.amount)),
+                Cell::new(format!("{:}", info.count)),
+                Cell::new(format!("{:.2}", info.avg())),
+            ]);
         }
+        
+        log::info!("Per tags data:\n{}", table);
+    }
+
+    fn transactions(&self, db: &Db) {
+        let mut table = TransactionDataVm::create_table(vec!["Id", "Name", "Date", "Amount", "Tag"]);
+
+        for t in self.transactions {
+            let tag = db.get_tag_str(t.tag_id).unwrap_or(String::from("Unknown"));
+            table.add_row(vec![
+                Cell::new(t._id),
+                Cell::new(&t.name),
+                Cell::new(&t.date),
+                Cell::new(t.amount),
+                Cell::new(&tag),
+            ]);
+        }
+
+        log::info!("Transactions:\n{}", table);
+    }
+
+    fn create_table(header: Vec<&str>) -> Table {
+        let mut table = Table::new();
+        let cells: Vec<Cell> = header.iter().map(|h| { Cell::new(h).add_attribute(Attribute::Bold).fg(Color::Green) }).collect();
+        let header = Row::from(cells);
+        table
+            .load_preset(UTF8_FULL)
+            .apply_modifier(UTF8_ROUND_CORNERS)
+            .set_content_arrangement(ContentArrangement::Dynamic)
+            .set_header(header);
+        
+        table
     }
 }
-
-// impl ViewModel<TransactionDataVm, &'_ Vec<Transaction>> for TransactionDataVm

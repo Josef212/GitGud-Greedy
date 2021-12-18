@@ -1,11 +1,9 @@
-use std::collections::HashMap;
 use clap::Parser;
 use log;
 
 use crate::commands::sub_cmd::SubCmd;
 use crate::models::Db;
 use crate::commons::Opts;
-use crate::view_models::ViewModel;
 use crate::view_models::transaction_data_vm::TransactionDataVm;
 
 #[derive(Parser, Debug)]
@@ -23,8 +21,6 @@ impl SubCmd for TransactionData {
             std::process::exit(0);
         });
 
-        // TODO: Format results
-        
         TransactionDataVm::generate(&transactions).render(db);
     }
 }

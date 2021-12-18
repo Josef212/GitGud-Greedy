@@ -38,7 +38,7 @@ impl SubCmd for TransactionData {
             let tag = db.get_tag_str(t.tag_id).unwrap_or(String::from("Unknown"));
 
             log::info!(
-                "  [{:04}] Name: {} - Date: {} - Amount: {} - Tag: {}",
+                "  [{:04}] Name: {} - Date: {} - Amount: {:.2} - Tag: {}",
                 t._id, t.name, t.date, t.amount, tag
             );
         }
@@ -46,9 +46,9 @@ impl SubCmd for TransactionData {
         let amount_avg: f32 = total_amount / (transactions.len() as f32);
         
         log::info!("======================================");
-        log::info!("Total spent: {}", total_amount);
+        log::info!("Total spent: {:.2}", total_amount);
         log::info!("Total tags: {}", tags_count.len());
-        log::info!("Avg per tag: {}", amount_avg);
+        log::info!("Avg per tag: {:.2}", amount_avg);
         
         for t in tags_count {
             let tag_id = t.0;
@@ -58,7 +58,7 @@ impl SubCmd for TransactionData {
             let avg: f32 = amount / (count as f32);
             
             log::info!(
-                "  [{}] Name: {} - A: {} - C: {} - Avg: {}",
+                "  [{:02}] {} - A: {:.2} - C: {} - Avg: {:.2}",
                 tag_id, tag, amount, count, avg
             );
         }

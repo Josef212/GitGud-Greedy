@@ -1,10 +1,9 @@
 use clap::Parser;
 use log;
 
-use crate::commands::sub_cmd::{SubCmd, ask_parameter};
+use crate::commands::sub_cmd::SubCmd;
 use crate::models::Db;
 use crate::commons::Opts;
-use crate::models::transaction::Transaction;
 
 #[derive(Parser, Debug)]
 pub struct ParsePayroll {
@@ -12,7 +11,7 @@ pub struct ParsePayroll {
 }
 
 impl SubCmd for ParsePayroll {
-    fn execute(&self, db: &Db, _opts: &Opts) {
+    fn execute(&self, _db: &Db, _opts: &Opts) {
         todo!()
     }
 }

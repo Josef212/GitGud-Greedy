@@ -1,10 +1,9 @@
 use clap::Parser;
 use log;
 
-use crate::commands::sub_cmd::{SubCmd, ask_parameter};
+use crate::commands::sub_cmd::SubCmd;
 use crate::models::Db;
 use crate::commons::Opts;
-use crate::models::payroll::Payroll;
 
 #[derive(Parser, Debug)]
 pub struct PayrollData {

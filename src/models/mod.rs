@@ -332,7 +332,12 @@ impl Db {
         Ok(ret)
     }
 
-    pub fn get_payroll_data_range(&self, start_year: u32, start_month: u32, end_year: u32, end_month: u32) -> Result<Vec<Payroll>, Error> {
+    pub fn get_payroll_data_range(&self, _start_year: u32, _start_month: u32, _end_year: u32, _end_month: u32) -> Result<Vec<Payroll>, Error> {
+        // TODO: Maybe can use a struct to wrap date ranges. Will probably be handy for other fetch
+        todo!()
+    }
+    
+    pub fn get_transaction_data_range(&self, _start_year: u32, _start_month: u32, _end_year: u32, _end_month: u32) -> Result<Vec<Transaction>, Error> {
         // TODO: Maybe can use a struct to wrap date ranges. Will probably be handy for other fetch
         todo!()
     }

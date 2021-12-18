@@ -282,12 +282,12 @@ impl Db {
 
         let mut sql = format!("SELECT * FROM {}", PAYROLLS_KEY);
         match year {
-            Some(y) => sql += &format!(" WHERE strftime('%Y', date) = '{}'", y),
+            Some(y) => sql += &format!(" WHERE strftime('%Y', date) = '{:04}'", y),
             None => (),
         }
         
         match month {
-            Some(m) => sql += &format!(" AND strftime('%m', date) = '{}'", m),
+            Some(m) => sql += &format!(" AND strftime('%m', date) = '{:02}'", m),
             None => (),
         }
 
@@ -312,12 +312,12 @@ impl Db {
 
         let mut sql = format!("SELECT * FROM {}", TRANSACTIONS_KEY);
         match year {
-            Some(y) => sql += &format!(" WHERE strftime('%Y', date) = '{}'", y),
+            Some(y) => sql += &format!(" WHERE strftime('%Y', date) = '{:04}'", y),
             None => (),
         }
 
         match month {
-            Some(m) => sql += &format!(" AND strftime('%m', date) = '{}'", m),
+            Some(m) => sql += &format!(" AND strftime('%m', date) = '{:02}'", m),
             None => (),
         }
         

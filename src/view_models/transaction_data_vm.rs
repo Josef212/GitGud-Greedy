@@ -13,7 +13,9 @@ struct TagInfo {
 }
 
 impl TagInfo {
-    fn empty(id: i32) -> Self { Self { id, count: 0, amount: 0.0 } }
+    fn empty(id: i32) -> Self { 
+        Self { id, count: 0, amount: 0.0 } 
+    }
     
     fn add_count(&mut self, amount: f32) {
         self.count += 1;

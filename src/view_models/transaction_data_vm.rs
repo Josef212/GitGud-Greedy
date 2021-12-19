@@ -53,10 +53,13 @@ impl<'a> TransactionDataVm<'a> {
         }
     }
     
-    pub fn render(&self, db: &Db) {
+    pub fn render(&self, print_transactions: bool, db: &Db) {
         self.recap();
         self.tags(db);
-        self.transactions(db);
+        
+        if print_transactions {
+            self.transactions(db);
+        }
     }
     
     fn recap(&self) {

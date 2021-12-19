@@ -71,10 +71,13 @@ impl<'a> PayrollDataVm<'a> {
         }
     }
     
-    pub fn render(&self, db: &Db) {
+    pub fn render(&self, print_payrolls: bool, db: &Db) {
         self.recap();
-        self.payrolls(db);
-        self.foo(db);
+        self.companies_and_categories(db);
+        
+        if print_payrolls {
+            self.payrolls(db);
+        }
     }
     
     fn recap(&self) {
@@ -124,7 +127,7 @@ impl<'a> PayrollDataVm<'a> {
         log::info!("Payrolls:\n{}", table);
     }
     
-    fn foo(&self, db: &Db) {
+    fn companies_and_categories(&self, db: &Db) {
         let mut table = PayrollDataVm::create_table(vec![
             "Id", "Name", "Gross", "Avg.", "Count",
             "",

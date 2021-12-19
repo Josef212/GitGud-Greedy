@@ -53,13 +53,30 @@ impl<'a> TransactionDataVm<'a> {
         }
     }
     
-    pub fn render(&self, print_transactions: bool, db: &Db) {
+    pub fn render(&self, db: &Db) {
         self.recap();
         self.tags(db);
-        
-        if print_transactions {
-            self.transactions(db);
+    }
+    
+    pub fn full_list(&self, db: &Db) {
+        let mut table = TransactionDataVm::create_table(vec!["Id", "Name", "Date", "Amount", "Tag"]);
+
+        for t in self.transactions {
+            let tag = db.get_tag_str(t.tag_id).unwrap_or(String::from("Unknown"));
+            table.add_row(vec![
+                Cell::new(t._id),
+                Cell::new(&t.name),
+                Cell::new(&t.date),
+                Cell::new(t.amount),
+                Cell::new(&tag),
+            ]);
         }
+
+        log::info!("Transactions:\n{}", table);
+    }
+    
+    pub fn plot(&self, _db: &Db) {
+        
     }
     
     fn recap(&self) {
@@ -88,23 +105,6 @@ impl<'a> TransactionDataVm<'a> {
         }
         
         log::info!("Per tags data:\n{}", table);
-    }
-
-    fn transactions(&self, db: &Db) {
-        let mut table = TransactionDataVm::create_table(vec!["Id", "Name", "Date", "Amount", "Tag"]);
-
-        for t in self.transactions {
-            let tag = db.get_tag_str(t.tag_id).unwrap_or(String::from("Unknown"));
-            table.add_row(vec![
-                Cell::new(t._id),
-                Cell::new(&t.name),
-                Cell::new(&t.date),
-                Cell::new(t.amount),
-                Cell::new(&tag),
-            ]);
-        }
-
-        log::info!("Transactions:\n{}", table);
     }
 
     // TODO: Abstract this

@@ -14,6 +14,8 @@ pub struct PayrollData {
     month: Option<u32>,
     #[clap(short, long)]
     list: bool,
+    #[clap(short, long)]
+    plot: bool,
 }
 
 impl SubCmd for PayrollData {
@@ -23,6 +25,15 @@ impl SubCmd for PayrollData {
             std::process::exit(0);
         });
         
-        PayrollDataVm::generate(&payrolls).render(self.list, db);
+        let vm = PayrollDataVm::generate(&payrolls);
+        vm.render(db);
+        
+        if self.list {
+            vm.full_list(db);
+        }
+        
+        if self.plot {
+            vm.plot(db);
+        }
     }
 }

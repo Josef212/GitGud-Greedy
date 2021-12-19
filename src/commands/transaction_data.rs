@@ -14,6 +14,8 @@ pub struct TransactionData {
     month: Option<u32>,
     #[clap(short, long)]
     list: bool,
+    #[clap(short, long)]
+    plot: bool,
 }
 
 impl SubCmd for TransactionData {
@@ -23,6 +25,15 @@ impl SubCmd for TransactionData {
             std::process::exit(0);
         });
 
-        TransactionDataVm::generate(&transactions).render(self.list, db);
+        let vm = TransactionDataVm::generate(&transactions);
+        vm.render(db);
+        
+        if self.list {
+            vm.full_list(db);
+        }
+        
+        if self.plot {
+            vm.plot(db);
+        }
     }
 }

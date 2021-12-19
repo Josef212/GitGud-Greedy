@@ -71,13 +71,37 @@ impl<'a> PayrollDataVm<'a> {
         }
     }
     
-    pub fn render(&self, print_payrolls: bool, db: &Db) {
+    pub fn render(&self, db: &Db) {
         self.recap();
         self.companies_and_categories(db);
-        
-        if print_payrolls {
-            self.payrolls(db);
+    }
+    
+    pub fn full_list(&self, db: &Db) {
+        let mut table = PayrollDataVm::create_table(vec![
+            "Id", "Date", "Gross", "Net", "SS", "Irpf", "Company", "Category"
+        ]);
+
+        for p in self.payrolls {
+            let company = db.get_company_str(p.company_id).unwrap_or(String::from("Unknown"));
+            let category = db.get_category_str(p.category_id).unwrap_or(String::from("Unknown"));
+
+            table.add_row(vec![
+                Cell::new(p._id),
+                Cell::new(&p.date),
+                Cell::new(p.gross),
+                Cell::new(p.net),
+                Cell::new(p.ss),
+                Cell::new(p.irpf),
+                Cell::new(&company),
+                Cell::new(&category),
+            ]);
         }
+
+        log::info!("Payrolls:\n{}", table);
+    }
+
+    pub fn plot(&self, _db: &Db) {
+        
     }
     
     fn recap(&self) {
@@ -101,30 +125,6 @@ impl<'a> PayrollDataVm<'a> {
         ]);
         
         log::info!("Summary:\n{}", table);
-    }
-
-    fn payrolls(&self, db: &Db) {
-        let mut table = PayrollDataVm::create_table(vec![
-            "Id", "Date", "Gross", "Net", "SS", "Irpf", "Company", "Category"
-        ]);
-        
-        for p in self.payrolls {
-            let company = db.get_company_str(p.company_id).unwrap_or(String::from("Unknown"));
-            let category = db.get_category_str(p.category_id).unwrap_or(String::from("Unknown"));
-
-            table.add_row(vec![
-                Cell::new(p._id),
-                Cell::new(&p.date),
-                Cell::new(p.gross),
-                Cell::new(p.net),
-                Cell::new(p.ss),
-                Cell::new(p.irpf),
-                Cell::new(&company),
-                Cell::new(&category),
-            ]);
-        }
-        
-        log::info!("Payrolls:\n{}", table);
     }
     
     fn companies_and_categories(&self, db: &Db) {

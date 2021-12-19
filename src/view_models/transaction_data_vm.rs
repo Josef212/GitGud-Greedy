@@ -104,6 +104,7 @@ impl<'a> TransactionDataVm<'a> {
         log::info!("Transactions:\n{}", table);
     }
 
+    // TODO: Abstract this
     fn create_table(header: Vec<&str>) -> Table {
         let mut table = Table::new();
         let cells: Vec<Cell> = header.iter().map(|h| { Cell::new(h).add_attribute(Attribute::Bold).fg(Color::Green) }).collect();

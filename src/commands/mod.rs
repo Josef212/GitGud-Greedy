@@ -9,6 +9,7 @@ mod sub_cmd;
 mod add_transaction;
 mod add_payroll;
 mod add_names;
+mod account_balance;
 mod get_names;
 mod payroll_data;
 mod transaction_data;
@@ -18,6 +19,7 @@ mod parse_payroll;
 use add_transaction::*;
 use add_payroll::*;
 use add_names::*;
+use account_balance::*;
 use get_names::*;
 use payroll_data::*;
 use transaction_data::*;
@@ -42,6 +44,12 @@ pub enum SubCommand {
     AddCompany(AddCompany),
     #[clap(version="1.0", author="Josef212")]
     AddCategory(AddCategory),
+    #[clap(version="1.0", author="Josef212")]
+    AddAccount(AddAccount),
+    #[clap(version="1.0", author="Josef212")]
+    GetAccount(GetAccount),
+    #[clap(version="1.0", author="Josef212")]
+    SetAccountBalance(SetAccountBalance),
     #[clap(version="1.0", author="Josef212")]
     GetName(GetName),
     #[clap(version="1.0", author="Josef212")]
@@ -68,6 +76,9 @@ impl std::fmt::Display for SubCommand {
             SubCommand::AddTag(_) => write!(f, "{}", "AddTag"),
             SubCommand::AddCompany(_) => write!(f, "{}", "AddCompany"),
             SubCommand::AddCategory(_) => write!(f, "{}", "AddCategory"),
+            SubCommand::AddAccount(_) => write!(f, "{}", "AddAccount"),
+            SubCommand::GetAccount(_) => write!(f, "{}", "GetAccount"),
+            SubCommand::SetAccountBalance(_) => write!(f, "{}", "SetAccountBalance"),
             SubCommand::AddTransaction(_) => write!(f, "{}", "AddTransaction"),
             SubCommand::AddTransactionP(_) => write!(f, "{}", "AddTransactionP"),
             SubCommand::AddPayroll(_) => write!(f, "{}", "AddPayroll"),
@@ -97,6 +108,9 @@ impl SubCommand {
             SubCommand::AddTag(cmd) => cmd.execute(db, opts),
             SubCommand::AddCompany(cmd) => cmd.execute(db, opts),
             SubCommand::AddCategory(cmd) => cmd.execute(db, opts),
+            SubCommand::AddAccount(cmd) => cmd.execute(db, opts),
+            SubCommand::GetAccount(cmd) => cmd.execute(db, opts),
+            SubCommand::SetAccountBalance(cmd) => cmd.execute(db, opts),
             SubCommand::AddTransaction(cmd) => cmd.execute(db, opts),
             SubCommand::AddTransactionP(cmd) => cmd.execute(db, opts),
             SubCommand::AddPayroll(cmd) => cmd.execute(db, opts),

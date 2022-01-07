@@ -1,12 +1,13 @@
-use chrono::{NaiveDate, NaiveDateTime, ParseError, Utc};
-use rusqlite::{Connection, Error, params, Row, Rows};
+use rusqlite::{Connection, Error, params, Params, Row, Rows};
 use log;
 
 pub mod transaction;
 pub mod payroll;
+pub mod account;
 
 use crate::models::transaction::Transaction;
 use crate::models::payroll::Payroll;
+use crate::models::account::Account;
 
 const TAGS_KEY: &str = "tags";
 const TAGS_TABLE: &str = "
@@ -50,6 +51,14 @@ company_id INTEGER REFERENCES companies(id),
 category_id INTEGER REFERENCES categories(id)
 ";
 
+const ACCOUNTS_KEY: &str = "accounts";
+const ACCOUNTS_TABLE: &str = "
+id INTEGER PRIMARY KEY,
+name TEXT NOT NULL,
+amount REAL NOT NULL,
+description TEXT
+";
+
 pub struct Name {
     pub id: i32,
     pub name: String,
@@ -90,6 +99,7 @@ impl Db {
         self.create_table_if_not_exists(CATEGORIES_KEY, CATEGORIES_TABLE)?;
         self.create_table_if_not_exists(TRANSACTIONS_KEY, TRANSACTIONS_TABLE)?;
         self.create_table_if_not_exists(PAYROLLS_KEY, PAYROLLS_TABLE)?;
+        self.create_table_if_not_exists(ACCOUNTS_KEY, ACCOUNTS_TABLE)?;
         
         Ok(())
     }
@@ -100,18 +110,18 @@ impl Db {
         self.connection.execute(&sql, [])
     }
     
-    pub fn decode_date(date_int: i64) -> String {
-        NaiveDateTime::from_timestamp(date_int, 0)
-            .format("%d-%m-%Y")
-            .to_string()
-    }
-    
-    pub fn code_date(date: &String) -> Result<i64, ParseError> {
-        let date = NaiveDate::parse_from_str(&date, "%d-%m-%Y")?;
-        let time = Utc::now().time();
-        let date_time = NaiveDateTime::new(date, time);
-        Ok(date_time.timestamp())
-    }
+    // pub fn decode_date(date_int: i64) -> String {
+    //     NaiveDateTime::from_timestamp(date_int, 0)
+    //         .format("%d-%m-%Y")
+    //         .to_string()
+    // }
+    // 
+    // pub fn code_date(date: &String) -> Result<i64, ParseError> {
+    //     let date = NaiveDate::parse_from_str(&date, "%d-%m-%Y")?;
+    //     let time = Utc::now().time();
+    //     let date_time = NaiveDateTime::new(date, time);
+    //     Ok(date_time.timestamp())
+    // }
     
     pub fn insert_transaction(&self, transaction: &Transaction) -> Result<usize, Error> {
         log::trace!("Inserting new transaction: {:?} to {}", transaction, self.name);
@@ -142,6 +152,15 @@ impl Db {
 
     pub fn insert_category(&self, category: &str, description: &str) -> Result<usize, Error> {
         self.insert_name(CATEGORIES_KEY, category, description)
+    }
+    
+    pub fn insert_account(&self, account: &Account) -> Result<usize, Error> {
+        log::trace!("Inserting new account: {:?} to {}", account, self.name);
+        
+        let sql = format!("INSERT INTO {} (name, amount, description) VALUES (?1, ?2, ?3)", ACCOUNTS_KEY);
+        let params = params![&account.name, &account.amount, &account.description];
+        
+        self.connection.execute(&sql, params)
     }
 
     // Using 'name' to describe tag, company, category generically. (something with only [id, name, description])
@@ -176,6 +195,27 @@ impl Db {
 
     pub fn get_category_id(&self, name: &str) -> Result<i32, Error> {
         self.get_name_id(CATEGORIES_KEY, name)
+    }
+    
+    pub fn get_account(&self, name: &str) -> Result<Account, Error> {
+        log::trace!("Get account for: {}", name);
+        
+        let sql = format!("SELECT * FROM {} WHERE name = '{}'", ACCOUNTS_KEY, name);
+        log::trace!("Executing sql: {}", sql);
+        
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut rows = stmt.query([])?;
+        let data: Vec<Account> = self.query_statement(&mut rows, |r| Some(Account::from_row(r)))?;
+        
+        if data.len() == 0 {
+            return Err(Error::QueryReturnedNoRows);
+        }
+
+        if data.len() > 1 {
+            log::warn!("Found several accounts with same name value [{}]", name);
+        }
+
+        Ok(data[0].clone())
     }
 
     fn get_name_str(&self, table: &str, id: i32) -> Result<String, Error> {
@@ -216,7 +256,7 @@ impl Db {
             
             None
         })?;
-        
+
         if ids.len() == 0 {
             return Err(Error::QueryReturnedNoRows);
         }
@@ -227,7 +267,26 @@ impl Db {
         
         Ok(ids[0])
     }
-    
+
+    fn query<T, P: Params, TFn>(&self, sql: &String, params: P, mut convertor: TFn) -> Result<Vec<T>, Error>
+        where TFn: FnMut(&Row) -> Option<T> {
+        log::trace!("Executing query: {}", sql);
+
+        let mut stmt = self.connection.prepare(&sql)?;
+        let mut rows = stmt.query(params)?;
+
+        let mut ret: Vec<T> = Vec::new();
+
+        while let Some(r) = rows.next()? {
+            if let Some(value) = convertor(r) {
+                ret.push(value);
+            }
+        }
+
+        Ok(ret)
+    }
+
+    #[deprecated(note="Use query instead")]
     fn query_statement<T, TFn>(&self, rows: &mut Rows, mut convertor: TFn) -> Result<Vec<T>, Error>
         where TFn: FnMut(&Row) -> Option<T>  {
         let mut ret: Vec<T> = Vec::new();
@@ -237,6 +296,21 @@ impl Db {
                 ret.push(value);
             }
         }
+        
+        Ok(ret)
+    }
+    
+    pub fn edit_account(&self, _name: &str, _amount: f32) -> Result<usize, Error> {
+        todo!("Edit account amount is still not implemented")
+    }
+    
+    pub fn get_all_accounts(&self) -> Result<Vec<Account>, Error> {
+        log::trace!("Getting all accounts data");
+        
+        let sql = format!("SELECT * FROM {}", ACCOUNTS_KEY);
+        log::trace!("Executing sql: {}", sql);
+        
+        let ret = self.query(&sql, [], |r| Some(Account::from_row(r)))?;
         
         Ok(ret)
     }
@@ -254,7 +328,7 @@ impl Db {
     }
     
     fn get_all_names(&self, table: &str) -> Result<Vec<Name>, Error> {
-        log::trace!("Getting all tags");
+        log::trace!("Getting all {}", table);
         
         let sql = format!("SELECT * FROM {}", table);
         log::trace!("Executing sql: {}", sql);

@@ -35,6 +35,10 @@ pub struct TransactionDataVm<'a> {
 }
 
 impl<'a> TransactionDataVm<'a> {
+    pub fn total(&self) -> f32 {
+        self.total_amount
+    }
+    
     pub fn generate(from: &'a Vec<Transaction>) -> Self {
         let mut total_amount = 0.0;
         let mut tags_info: HashMap<i32, TagInfo> = HashMap::new();

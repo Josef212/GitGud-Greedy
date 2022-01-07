@@ -39,6 +39,10 @@ pub struct PayrollDataVm<'a> {
 }
 
 impl<'a> PayrollDataVm<'a> {
+    pub fn get_net(&self) -> f32 {
+        self.net_total
+    }
+    
     pub fn generate(from: &'a Vec<Payroll>) -> Self {
         let mut gross_total = 0.0;
         let mut net_total = 0.0;
@@ -116,13 +120,15 @@ impl<'a> PayrollDataVm<'a> {
             Cell::new(format!("{}", self.irpf_total)),
         ]);
         
-        table.add_row(vec![
-            Cell::new("Avg.").add_attribute(Attribute::Bold),
-            Cell::new(format!("{}", self.gross_avg())),
-            Cell::new(format!("{}", self.net_avg())),
-            Cell::new(format!("{}", self.ss_avg())),
-            Cell::new(format!("{}", self.irpf_avg())),
-        ]);
+        if self.payrolls.len() > 1 {
+            table.add_row(vec![
+                Cell::new("Avg.").add_attribute(Attribute::Bold),
+                Cell::new(format!("{}", self.gross_avg())),
+                Cell::new(format!("{}", self.net_avg())),
+                Cell::new(format!("{}", self.ss_avg())),
+                Cell::new(format!("{}", self.irpf_avg())),
+            ]);
+        }
         
         log::info!("Summary:\n{}", table);
     }

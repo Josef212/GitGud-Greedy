@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Error, params, Params, Row, Rows};
+use rusqlite::{Connection, Error, params, Params, Row};
 use log;
 
 pub mod transaction;
@@ -203,9 +203,7 @@ impl Db {
         let sql = format!("SELECT * FROM {} WHERE name = '{}'", ACCOUNTS_KEY, name);
         log::trace!("Executing sql: {}", sql);
         
-        let mut stmt = self.connection.prepare(&sql)?;
-        let mut rows = stmt.query([])?;
-        let data: Vec<Account> = self.query_statement(&mut rows, |r| Some(Account::from_row(r)))?;
+        let data: Vec<Account> = self.query(&sql, [], |r| Some(Account::from_row(r)))?;
         
         if data.len() == 0 {
             return Err(Error::QueryReturnedNoRows);
@@ -223,17 +221,15 @@ impl Db {
         
         let sql = format!("SELECT * FROM {} WHERE id = {}", table, id);
         log::trace!("Executing sql: {}", sql);
-
-        let mut stmt = self.connection.prepare(&sql)?;
-        let mut rows = stmt.query([])?;
-        let names: Vec<String> = self.query_statement(&mut rows, |r| {
+        
+        let names: Vec<String> = self.query(&sql, [], |r| {
             if let Ok(v) = r.get(1) {
                 return Some(v);
             }
-            
+
             None
         })?;
-        
+
         if names.len() == 0 {
             return Err(Error::QueryReturnedNoRows);
         }
@@ -247,16 +243,13 @@ impl Db {
         let sql = format!("SELECT * FROM {} WHERE name = '{}'", table, name);
         log::trace!("Executing sql: {}", sql);
 
-        let mut stmt = self.connection.prepare(&sql)?;
-        let mut rows = stmt.query([])?;
-        let ids: Vec<i32> = self.query_statement(&mut rows, |r| {
+        let ids: Vec<i32> = self.query(&sql, [], |r| {
             if let Ok(v) = r.get(0) {
                 return Some(v);
             }
-            
+
             None
         })?;
-
         if ids.len() == 0 {
             return Err(Error::QueryReturnedNoRows);
         }
@@ -283,20 +276,6 @@ impl Db {
             }
         }
 
-        Ok(ret)
-    }
-
-    #[deprecated(note="Use query instead")]
-    fn query_statement<T, TFn>(&self, rows: &mut Rows, mut convertor: TFn) -> Result<Vec<T>, Error>
-        where TFn: FnMut(&Row) -> Option<T>  {
-        let mut ret: Vec<T> = Vec::new();
-        
-        while let Some(r) = rows.next()? {
-            if let Some(value) = convertor(r) {
-                ret.push(value);
-            }
-        }
-        
         Ok(ret)
     }
     
@@ -333,9 +312,7 @@ impl Db {
         let sql = format!("SELECT * FROM {}", table);
         log::trace!("Executing sql: {}", sql);
 
-        let mut stmt = self.connection.prepare(&sql)?;
-        let mut rows = stmt.query([])?;
-        let ret = self.query_statement(&mut rows, |r| {
+        let ret = self.query(&sql, [], |r| {
             let id: i32 = r.get_unwrap(0);
             let name: String = r.get_unwrap(1);
             let desc: String = r.get_unwrap(2);
@@ -369,9 +346,7 @@ impl Db {
 
         log::trace!("Executing sql: {}", sql);
         
-        let mut stmt = self.connection.prepare(&sql)?;
-        let mut rows = stmt.query([])?;
-        let ret = self.query_statement(&mut rows, |r| Some(Payroll::from_row(r)))?;
+        let ret = self.query(&sql, [], |r| Some(Payroll::from_row(r)))?;
         
         Ok(ret)
     }
@@ -399,9 +374,7 @@ impl Db {
 
         log::trace!("Executing sql: {}", sql);
 
-        let mut stmt = self.connection.prepare(&sql)?;
-        let mut rows = stmt.query([])?;
-        let ret = self.query_statement(&mut rows, |r| Some(Transaction::from_row(r)))?;
+        let ret = self.query(&sql, [], |r| Some(Transaction::from_row(r)))?;
 
         Ok(ret)
     }
